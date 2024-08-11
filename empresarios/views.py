@@ -1,40 +1,21 @@
 from django.shortcuts import render, redirect
-from .models import Empresas
 from django.contrib import messages
 from django.contrib.messages import constants
-import re
-
-def validar_cnpj(cnpj):
-    cnpj = re.sub(r'\D', '', cnpj)  # Remove qualquer coisa que não seja número
-    
-    if len(cnpj) != 14:
-        return False
-
-    # Verifica se todos os dígitos são iguais, o que é um CNPJ inválido
-    if cnpj == cnpj[0] * 14:
-        return False
-
-    def calcular_digito(cnpj, peso):
-        soma = sum(int(digito) * peso for digito, peso in zip(cnpj, peso))
-        resto = soma % 11
-        return '0' if resto < 2 else str(11 - resto)
-    
-    # Primeiro dígito verificador
-    peso1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-    primeiro_digito = calcular_digito(cnpj[:12], peso1)
-
-    # Segundo dígito verificador
-    peso2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-    segundo_digito = calcular_digito(cnpj[:13], peso2)
-
-    # Verifica se os dígitos calculados são iguais aos do CNPJ informado
-    return cnpj[-2:] == primeiro_digito + segundo_digito
+from .models import Empresas
+from .validators import validar_cnpj
 
 def cadastrar_empresa(request):
+    # Verifica se o método da requisição é GET
     if request.method == "GET":
-        return render(request, 'cadastrar_empresa.html', {'tempo_existencia': Empresas.tempo_existencia_choices,
-                                                          'areas': Empresas.area_choices})
+        # Renderiza a página de cadastro de empresa com as opções de tempo de existência e áreas
+        return render(request, 'cadastrar_empresa.html', {
+            'tempo_existencia': Empresas.tempo_existencia_choices,
+            'areas': Empresas.area_choices
+        })
+    
+    # Verifica se o método da requisição é POST
     elif request.method == "POST":
+        # Extrai os dados enviados no formulário
         nome = request.POST.get('nome')
         cnpj = request.POST.get('cnpj')
         site = request.POST.get('site')
@@ -49,49 +30,54 @@ def cadastrar_empresa(request):
         pitch = request.FILES.get('pitch')
         logo = request.FILES.get('logo')
 
-        # Validações
+        # Validações de campos obrigatórios
         if not nome or not cnpj or not tempo_existencia or not descricao or not valor:
-            messages.add_message(request, constants.ERROR, 'Todos os campos obrigatórios devem ser preenchidos.')
+            messages.add_message(request, constants.ERROR, '⚠️ Todos os campos são obrigatórios e devem ser preenchidos.')
             return redirect('/empresarios/cadastrar_empresa')
 
+        # Validação do CNPJ usando uma função externa
         if not validar_cnpj(cnpj):
             messages.add_message(request, constants.ERROR, 'CNPJ inválido.')
             return redirect('/empresarios/cadastrar_empresa')
 
+        # Validação do campo 'valor', garantindo que seja um número
         try:
             valor = float(valor)
         except ValueError:
             messages.add_message(request, constants.ERROR, 'O valor deve ser numérico.')
             return redirect('/empresarios/cadastrar_empresa')
 
+        # Validação do campo 'percentual_equity', garantindo que seja um número
         try:
             percentual_equity = float(percentual_equity)
         except ValueError:
             messages.add_message(request, constants.ERROR, 'O percentual de equity deve ser numérico.')
             return redirect('/empresarios/cadastrar_empresa')
 
-        # Criação da empresa
+        # Tentativa de criação da nova empresa
         try:
             empresa = Empresas(
-                user=request.user,
-                nome=nome,
-                cnpj=cnpj,
-                site=site,
-                tempo_existencia=tempo_existencia,
-                descricao=descricao,
-                data_final_captacao=data_final,
-                percentual_equity=percentual_equity,
-                estagio=estagio,
-                area=area,
-                publico_alvo=publico_alvo,
-                valor=valor,
-                pitch=pitch,
-                logo=logo
+                user=request.user,  # Atribui o usuário logado como o criador da empresa
+                nome=nome,  # Nome da empresa
+                cnpj=cnpj,  # CNPJ da empresa
+                site=site,  # Site da empresa
+                tempo_existencia=tempo_existencia,  # Tempo de existência da empresa
+                descricao=descricao,  # Descrição da empresa
+                data_final_captacao=data_final,  # Data final de captação
+                percentual_equity=percentual_equity,  # Percentual de equity oferecido
+                estagio=estagio,  # Estágio atual da empresa
+                area=area,  # Área de atuação da empresa
+                publico_alvo=publico_alvo,  # Público alvo da empresa
+                valor=valor,  # Valor estimado da empresa
+                pitch=pitch,  # Arquivo do pitch da empresa
+                logo=logo  # Logo da empresa
             )
-            empresa.save()
+            empresa.save()  # Salva a empresa no banco de dados
         except Exception as e:
+            # Captura qualquer exceção durante a criação da empresa e envia uma mensagem de erro
             messages.add_message(request, constants.ERROR, f'Erro interno do servidor: {str(e)}')
             return redirect('/empresarios/cadastrar_empresa')
 
-        messages.add_message(request, constants.SUCCESS, 'Empresa criada com sucesso')
+        # Se tudo correr bem, envia uma mensagem de sucesso
+        messages.add_message(request, constants.SUCCESS, '✅ Empresa criada com sucesso')
         return redirect('/empresarios/cadastrar_empresa')
