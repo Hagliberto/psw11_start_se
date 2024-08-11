@@ -22,6 +22,6 @@ from django.urls import path, include
 urlpatterns = [
     # Mapeia a URL 'admin/' para a interface administrativa do Django
     path('admin/', admin.site.urls),
-    path('usuarios/', include('usuarios.urls'))
-    
+    path('usuarios/', include('usuarios.urls')),
+    path('empresarios/', include('empresarios.urls')),  
 ]
