@@ -25,7 +25,7 @@
                 {% endfor %}
                 {% endif %}
                 <div class="col-md-3">
-                    
+
                     <img src="{{empresa.logo.url}}" class="foto-empresa" alt="">
                 </div>
                 <div class="col-md">
@@ -72,22 +72,24 @@
 
                 <div class="documentos">
                     <h3>Anexar documentos</h3>
-                    <form action="#" method="POST" enctype='multipart/form-data'>{% csrf_token %}
-                        <label>Titulo</label>
-                        <input type="text" name="titulo" class="form-control" placeholder="Titulo do documento">
+                    <form action="{% url 'add_doc' empresa.id %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <label>Título</label>
+                        <input type="text" name="titulo" class="form-control" placeholder="Título do documento">
                         <br>
                         <label>Arquivo</label>
                         <input type="file" name="arquivo" class="form-control">
                         <br>
                         <input type="submit" class="btn btn-success" value="Cadastrar">
                     </form>
+
                     <br><br>
 
-
+                    {% for documento in documentos %}
                     <div class="list_documentos">
                         <div class="row">
                             <div class="col-md-2" style="text-align: center">
-                                <a href="#">
+                                <a href="{{documento.arquivo.url}}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" style="color: white;"
                                         fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
                                         <path
@@ -98,7 +100,7 @@
                                 </a>
 
                             </div>
-                            <div class="col-md-6">Titulo aqui</div>
+                            <div class="col-md-6">{{documento.titulo}}i</div>
                             <div class="col-md-4" style="text-align: right;">
                                 <a href="#">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" style="color: white;"
@@ -110,6 +112,9 @@
                             </div>
                         </div>
                     </div>
+                    <br>
+                    {% endfor %}
+
 
                     <br>
                     <hr>

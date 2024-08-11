@@ -1,8 +1,19 @@
 from django.urls import path
 from . import views
+
 urlpatterns = [
+    # Rota para cadastrar uma nova empresa
     path('cadastrar_empresa/', views.cadastrar_empresa, name="cadastrar_empresa"),
+    
+    # Rota para listar todas as empresas
     path('listar_empresas/', views.listar_empresas, name="listar_empresas"),
-    path('empresa/<int:id>/', views.detalhar_empresa, name='detalhar_empresa'),
-    path('empresa/<int:id>', views.empresa, name="empresa"),
+    
+    # # Rota para detalhar uma empresa específica pelo ID
+    # path('empresa/<int:id>/', views.detalhar_empresa, name='detalhar_empresa'),
+    
+    # Rota para exibir informações de uma empresa específica pelo ID
+    path('empresa/<int:id>/', views.empresa, name="empresa"),
+    
+    # Rota para adicionar um documento a uma empresa específica pelo ID
+    path('add_doc/<int:id>/', views.add_doc, name="add_doc"),
 ]

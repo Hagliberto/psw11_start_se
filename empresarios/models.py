@@ -47,9 +47,6 @@ class Empresas(models.Model):
     def __str__(self):
         return f'{self.user.username} | {self.nome}'
 
-
-
-
     @property
     def status(self):
         if date.today() > self.data_final_captacao:
@@ -59,3 +56,14 @@ class Empresas(models.Model):
     @property
     def valuation(self):
         return f'{(100 * self.valor) / self.percentual_equity:.2f}'
+    
+    
+    
+class Documento(models.Model):
+    empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE)
+    titulo = models.CharField(max_length=255)
+    arquivo = models.FileField(upload_to='documentos/')
+
+
+    def __str__(self):
+        return self.titulo

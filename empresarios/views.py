@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.messages import constants
-from .models import Empresas
+from .models import Empresas, Documento
 from .validators import validar_cnpj
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
@@ -179,13 +179,167 @@ def listar_empresas(request):
         # Renderiza a página com as empresas filtradas
         return render(request, 'listar_empresas.html', {'empresas': empresas})
 
-# Detralhar empresas
+# Detalhar uma empresa específica
 def detalhar_empresa(request, id):
+    """
+    Recupera uma instância de empresa pelo ID fornecido e renderiza a página
+    'detalhar_empresa.html' com as informações da empresa.
+
+    Parâmetros:
+    request: Objeto HttpRequest que contém os dados da solicitação.
+    id: ID da empresa a ser detalhada.
+
+    Retorna:
+    HttpResponse: Página HTML renderizada com os detalhes da empresa.
+    """
+    # Tenta recuperar a empresa com o ID fornecido. Se não for encontrada, retorna um erro 404.
     empresa = get_object_or_404(Empresas, id=id)
+    # Renderiza a página 'detalhar_empresa.html', passando a empresa como contexto.
     return render(request, 'detalhar_empresa.html', {'empresa': empresa})
 
-
+# Exibir informações de uma empresa específica
 def empresa(request, id):
+    """
+    Recupera uma instância de empresa pelo ID fornecido e renderiza a página
+    'empresa.html' com as informações da empresa. Esta função é chamada quando
+    a solicitação é feita com o método GET.
+
+    Parâmetros:
+    request: Objeto HttpRequest que contém os dados da solicitação.
+    id: ID da empresa a ser exibida.
+
+    Retorna:
+    HttpResponse: Página HTML renderizada com as informações da empresa.
+    """
+    # Recupera a empresa com o ID fornecido. Levanta uma exceção se não encontrada.
     empresa = Empresas.objects.get(id=id)
+    
+    if empresa.user != request.user:
+        # Não permite acessar a empresa.
+        messages.add_message(request, constants.ERROR, "Permissão Negada! Você não está na sua empresa!")
+        # Redireciona de volta para a página de listar empresa.
+        return redirect(f'/empresarios/listar_empresas')
+
+    
+    # Verifica se o método da solicitação é GET.
     if request.method == "GET":
-        return render(request, 'empresa.html', {'empresa': empresa})
+        # Renderiza a página 'empresa.html', passando a empresa como contexto.
+        documentos = Documento.objects.filter(empresa=empresa)
+        return render(request, 'empresa.html', {'empresa': empresa, 'documentos': documentos})
+
+
+# Adicionar um novo documento para uma empresa
+def add_doc(request, id):
+    """
+    Adiciona um novo documento à empresa especificada. O documento deve ser
+    um arquivo PDF e o título deve ser fornecido. Se o arquivo não for PDF ou
+    estiver ausente, uma mensagem de erro será exibida. Caso contrário, o
+    documento será salvo e uma mensagem de sucesso será exibida.
+
+    Parâmetros:
+    request: Objeto HttpRequest que contém os dados da solicitação, incluindo
+             o arquivo e o título do documento.
+    id: ID da empresa à qual o documento será associado.
+
+    Retorna:
+    HttpResponseRedirect: Redireciona para a página da empresa com uma mensagem
+                          apropriada.
+    """
+    # Recupera a empresa com o ID fornecido. Levanta uma exceção se não encontrada.
+    empresa = Empresas.objects.get(id=id)
+    
+    # Obtém o título do documento a partir dos dados POST.
+    titulo = request.POST.get('titulo')
+    
+    # Obtém o arquivo enviado através do formulário.
+    arquivo = request.FILES.get('arquivo')
+    
+    # Divide o nome do arquivo para obter a extensão.
+    extensao = arquivo.name.split('.')
+
+    if empresa.user != request.user:
+        # Não permite acessar a empresa.
+        messages.add_message(request, constants.ERROR, "Permissão Negada! Você não está na sua empresa!")
+        # Redireciona de volta para a página de listar empresa.
+        return redirect(f'/empresarios/listar_empresas')
+
+    # Verifica se a extensão do arquivo é PDF.
+    if extensao[1] != 'pdf':
+        # Adiciona uma mensagem de erro se o arquivo não for PDF.
+        messages.add_message(request, constants.ERROR, "Envie apenas PDF's")
+        # Redireciona de volta para a página da empresa.
+        return redirect(f'/empresarios/empresa/{empresa.id}')
+    
+    # Verifica se o arquivo não foi enviado.
+    if not arquivo:
+        # Adiciona uma mensagem de erro se nenhum arquivo for enviado.
+        messages.add_message(request, constants.ERROR, "Envie um arquivo")
+        # Redireciona de volta para a página da empresa.
+        return redirect(f'/empresarios/empresa/{empresa.id}')
+        
+    # Cria uma nova instância de Documento associada à empresa com o título e arquivo fornecidos.
+    documento = Documento(
+        empresa=empresa,
+        titulo=titulo,
+        arquivo=arquivo
+    )
+    # Salva o novo documento no banco de dados.
+    documento.save()
+    # Adiciona uma mensagem de sucesso indicando que o arquivo foi cadastrado com sucesso.
+    messages.add_message(request, constants.SUCCESS, "Arquivo cadastrado com sucesso")
+    # Redireciona de volta para a página da empresa.
+    return redirect(f'/empresarios/empresa/{empresa.id}')
+
+
+
+# def add_doc(request, id):
+#     """
+#     Adiciona um novo documento à empresa especificada. O documento deve ser
+#     um arquivo PDF e o título deve ser fornecido. Se o arquivo não for PDF ou
+#     estiver ausente, uma mensagem de erro será exibida. Caso contrário, o
+#     documento será salvo e uma mensagem de sucesso será exibida.
+
+#     Parâmetros:
+#     request: Objeto HttpRequest que contém os dados da solicitação, incluindo
+#              o arquivo e o título do documento.
+#     id: ID da empresa à qual o documento será associado.
+
+#     Retorna:
+#     HttpResponseRedirect: Redireciona para a página da empresa com uma mensagem
+#                           apropriada.
+#     """
+#     try:
+#         empresa = Empresas.objects.get(id=id)
+#     except Empresas.DoesNotExist:
+#         messages.add_message(request, constants.ERROR, "Empresa não encontrada.")
+#         return redirect('/empresarios/listar_empresas')
+
+#     if empresa.user != request.user:
+#         messages.add_message(request, constants.ERROR, "Permissão Negada! Você não está na sua empresa!")
+#         return redirect('/empresarios/listar_empresas')
+
+#     titulo = request.POST.get('titulo')
+#     arquivo = request.FILES.get('arquivo')
+
+#     if not arquivo:
+#         messages.add_message(request, constants.ERROR, "Envie um arquivo")
+#         return redirect(f'/empresarios/empresa/{empresa.id}')
+
+#     if not arquivo.name.lower().endswith('.pdf'):
+#         messages.add_message(request, constants.ERROR, "Envie apenas PDF's")
+#         return redirect(f'/empresarios/empresa/{empresa.id}')
+
+#     documento = Documento(
+#         empresa=empresa,
+#         titulo=titulo,
+#         arquivo=arquivo  # Certifique-se de que o campo está correto
+#     )
+
+#     try:
+#         documento.save()  # Salva o documento no banco de dados
+#         messages.add_message(request, constants.SUCCESS, "Arquivo cadastrado com sucesso")
+#     except Exception as e:
+#         # Exibe a mensagem de erro para debug se o arquivo não for salvo
+#         messages.add_message(request, constants.ERROR, f"Erro ao salvar o arquivo: {str(e)}")
+
+#     return redirect(f'/empresarios/empresa/{empresa.id}')
