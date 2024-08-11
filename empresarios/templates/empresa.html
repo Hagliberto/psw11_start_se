@@ -49,19 +49,25 @@
             <div class="row">
                 <div class="col-md">
                     <h5>Percentual de equity vendido</h5>
-                    <div class="progress">
-                        <div class="progress-bar bg-primary" style="width: {{ percentual_total }}%"></div>
-                        <div class="progress-bar bg-success" style="width: {{ percentual_a_ser_vendido }}%"></div>
-                        <div class="progress-bar bg-success" style="width: {{ percentual_vendido }}%"></div>
-                    </div>
+            
+                    <!-- Barra de progresso para o percentual total -->
+                    <progress value="{{ percentual_total }}" max="100" class="progress-bar progress-bar-primary"></progress>
+            
+                    <!-- Barra de progresso para o percentual a ser vendido -->
+                    <progress value="{{ percentual_a_ser_vendido }}" max="100" class="progress-bar progress-bar-success"></progress>
+            
+                    <!-- Barra de progresso para o percentual vendido -->
+                    <progress value="{{ percentual_vendido }}" max="100" class="progress-bar progress-bar-info"></progress>
+            
                     <br>
-                    <label class="point-white"></label><span>&nbsp&nbsp Percentual total da empresa</span>
+                    <label class="point-white"></label><span>&nbsp;&nbsp; Percentual total da empresa</span>
                     <br>
-                    <label class="point-green"></label><span>&nbsp&nbsp Percentual a ser vendido</span>
+                    <label class="point-green"></label><span>&nbsp;&nbsp; Percentual a ser vendido</span>
                     <br>
-                    <label class="point-blue"></label><span>&nbsp&nbsp Percentual vendido</span>
+                    <label class="point-blue"></label><span>&nbsp;&nbsp; Percentual vendido</span>
                 </div>
-
+            </div>
+            
                 <div class="col-md">
                     <h5>Valuation</h5>
                     <span class="sub-fonte">Atual: 000</span>
