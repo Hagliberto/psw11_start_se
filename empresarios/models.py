@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.safestring import mark_safe
+from datetime import date
 
 # Create your models here.
 
@@ -44,3 +46,12 @@ class Empresas(models.Model):
 
     def __str__(self):
         return f'{self.user.username} | {self.nome}'
+
+
+
+
+    @property
+    def status(self):
+        if date.today() > self.data_final_captacao:
+            return mark_safe('<span class="badge bg-success">Captação finalizada</span>')
+        return mark_safe('<span class="badge bg-primary">Em captação</span>')

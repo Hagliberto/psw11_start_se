@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load static %}
+{% block 'head' %}
+<link rel="stylesheet" href="{% static 'empresarios/css/listar_empresas.css' %}">
+<link rel="stylesheet" href="{% static 'usuarios/css/usuarios.css' %}">
+{% endblock 'head' %}
+
+{% block 'body' %}
+    {% include "partials/barra_navegacao.html" %}
+    <br><br>
+    <div class="container">
+        <form action="{% url 'listar_empresas' %}" method="GET">
+            <div class="row">
+                <div class="col-md-3">
+                    <label>Nome</label>
+                    <input type="text" name="nome" class="form-control" placeholder="Digite o nome da empresa" value="{{ request.GET.nome }}">
+                </div>
+                <div class="col-md-3">
+                    <label>CNPJ</label>
+                    <input type="text" name="cnpj" class="form-control" placeholder="Digite o CNPJ" value="{{ request.GET.cnpj }}">
+                </div>
+                <div class="col-md-3">
+                    <label>Tempo de Existência</label>
+                    <select name="tempo_existencia" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        {% for valor, descricao in tempo_existencia %}
+                            <option value="{{ valor }}" {% if valor == request.GET.tempo_existencia %}selected{% endif %}>{{ descricao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Estágio</label>
+                    <select name="estagio" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        <option value="I" {% if "I" == request.GET.estagio %}selected{% endif %}>Tenho apenas uma ideia</option>
+                        <option value="MVP" {% if "MVP" == request.GET.estagio %}selected{% endif %}>Possuo um MVP</option>
+                        <option value="MVPP" {% if "MVPP" == request.GET.estagio %}selected{% endif %}>Possuo um MVP com clientes pagantes</option>
+                        <option value="E" {% if "E" == request.GET.estagio %}selected{% endif %}>Empresa pronta para escalar</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Área</label>
+                    <select name="area" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        {% for valor, descricao in areas %}
+                            <option value="{{ valor }}" {% if valor == request.GET.area %}selected{% endif %}>{{ descricao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Público-Alvo</label>
+                    <select name="publico_alvo" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        <option value="BTC" {% if "BTC" == request.GET.publico_alvo %}selected{% endif %}>BTC</option>
+                        <option value="B2B" {% if "B2B" == request.GET.publico_alvo %}selected{% endif %}>B2B</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Valor Mínimo</label>
+                    <input type="number" name="valor_min" class="form-control" placeholder="Valor mínimo" value="{{ request.GET.valor_min }}">
+                </div>
+                <div class="col-md-3">
+                    <label>Valor Máximo</label>
+                    <input type="number" name="valor_max" class="form-control" placeholder="Valor máximo" value="{{ request.GET.valor_max }}">
+                </div>
+                <div class="col-md-3">
+                    <br>
+                    <input type="submit" value="Filtrar" class="btn btn-outline-primary">
+                </div>
+            </div>
+        </form>
+    </div>
+    <br>
+    <div class="container dark-color container_empresas">
+        <table class="table">
+            <thead>
+                <tr class="cabecalho" style="background-color: transparent !important;">
+                    <th class="cabecalho" scope="col">Nome</th>
+                    <th class="cabecalho" scope="col">Percentual captado</th>
+                    <th class="cabecalho" scope="col">Status</th>
+                    <th class="cabecalho" scope="col">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for empresa in empresas %}
+                    <tr class="linha">
+                        <td class="linha">{{ empresa.nome }}</td>
+                        <td class="linha">
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ empresa.percentual_captado }}%" aria-valuenow="{{ empresa.percentual_captado }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </td>
+                        <td class="linha">{{ empresa.status }}</td>
+                        <td class="linha"><a href="{% url 'detalhar_empresa' empresa.id %}" class="btn btn-indigo-normal">Abrir</a></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">Nenhuma empresa encontrada.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock 'body' %}

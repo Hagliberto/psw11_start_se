@@ -3,8 +3,14 @@ from django.contrib import messages
 from django.contrib.messages import constants
 from .models import Empresas
 from .validators import validar_cnpj
+from django.shortcuts import render, get_object_or_404
 
+# Cadastrar uma nova empresa
 def cadastrar_empresa(request):
+    # Verifica se o usuário está logado, se não, redireciona para a pagina de login
+    if not request.user.is_authenticated:
+        return redirect('/usuarios/logar')
+    
     # Verifica se o método da requisição é GET
     if request.method == "GET":
         # Renderiza a página de cadastro de empresa com as opções de tempo de existência e áreas
@@ -108,3 +114,71 @@ def cadastrar_empresa(request):
         # Se tudo correr bem, envia uma mensagem de sucesso
         messages.add_message(request, constants.SUCCESS, '✅ Empresa criada com sucesso')
         return redirect('/empresarios/cadastrar_empresa')
+
+# Listar empresas Cadastradas
+def listar_empresas(request):
+    # Verifica se o usuário está logado, se não, redireciona para a página de login
+    if not request.user.is_authenticated:
+        return redirect('/usuarios/logar')
+
+    if request.method == "GET":
+        # Inicia a query base, filtrando empresas do usuário logado
+        empresas = Empresas.objects.filter(user=request.user)
+
+        # Filtragem opcional com base nos parâmetros da query string
+        nome = request.GET.get('nome')
+        cnpj = request.GET.get('cnpj')
+        tempo_existencia = request.GET.get('tempo_existencia')
+        estagio = request.GET.get('estagio')
+        area = request.GET.get('area')
+        publico_alvo = request.GET.get('publico_alvo')
+        valor_min = request.GET.get('valor_min')
+        valor_max = request.GET.get('valor_max')
+
+        # Aplica o filtro por nome da empresa, se fornecido
+        if nome:
+            empresas = empresas.filter(nome__icontains=nome)
+
+        # Aplica o filtro por CNPJ, se fornecido
+        if cnpj:
+            empresas = empresas.filter(cnpj__icontains=cnpj)
+
+        # Aplica o filtro por tempo de existência, se fornecido
+        if tempo_existencia:
+            empresas = empresas.filter(tempo_existencia=tempo_existencia)
+
+        # Aplica o filtro por estágio, se fornecido
+        if estagio:
+            empresas = empresas.filter(estagio=estagio)
+
+        # Aplica o filtro por área, se fornecido
+        if area:
+            empresas = empresas.filter(area=area)
+
+        # Aplica o filtro por público-alvo, se fornecido
+        if publico_alvo:
+            empresas = empresas.filter(publico_alvo__icontains=publico_alvo)
+
+        # Aplica o filtro por valor mínimo, se fornecido
+        if valor_min:
+            try:
+                valor_min = float(valor_min)
+                empresas = empresas.filter(valor__gte=valor_min)
+            except ValueError:
+                pass  # Se não for um valor numérico, ignora o filtro
+
+        # Aplica o filtro por valor máximo, se fornecido
+        if valor_max:
+            try:
+                valor_max = float(valor_max)
+                empresas = empresas.filter(valor__lte=valor_max)
+            except ValueError:
+                pass  # Se não for um valor numérico, ignora o filtro
+
+        # Renderiza a página com as empresas filtradas
+        return render(request, 'listar_empresas.html', {'empresas': empresas})
+
+# Detralhar empresas
+def detalhar_empresa(request, id):
+    empresa = get_object_or_404(Empresas, id=id)
+    return render(request, 'detalhar_empresa.html', {'empresa': empresa})
