@@ -16,4 +16,7 @@ urlpatterns = [
     
     # Rota para adicionar um documento a uma empresa específica pelo ID
     path('add_doc/<int:id>/', views.add_doc, name="add_doc"),
+    
+    # Rota para excluir um documento de um empresa específica pelo ID
+    path('excluir_dc/<int:id>', views.excluir_dc, name="excluir_dc"),
 ]

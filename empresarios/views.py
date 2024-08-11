@@ -227,6 +227,73 @@ def empresa(request, id):
         documentos = Documento.objects.filter(empresa=empresa)
         return render(request, 'empresa.html', {'empresa': empresa, 'documentos': documentos})
 
+# # Adicionar um novo documento para uma empresa
+# def add_doc(request, id):
+#     """
+#     Adiciona um novo documento à empresa especificada. O documento deve ser
+#     um arquivo PDF e o título deve ser fornecido. Se o arquivo não for PDF ou
+#     estiver ausente, uma mensagem de erro será exibida. Caso contrário, o
+#     documento será salvo e uma mensagem de sucesso será exibida.
+
+#     Parâmetros:
+#     request: Objeto HttpRequest que contém os dados da solicitação, incluindo
+#              o arquivo e o título do documento.
+#     id: ID da empresa à qual o documento será associado.
+
+#     Retorna:
+#     HttpResponseRedirect: Redireciona para a página da empresa com uma mensagem
+#                           apropriada.
+#     """
+#     # Recupera a empresa com o ID fornecido. Levanta uma exceção se não encontrada.
+#     empresa = Empresas.objects.get(id=id)
+    
+#     # Obtém o título do documento a partir dos dados POST.
+#     titulo = request.POST.get('titulo')
+    
+#     # Obtém o arquivo enviado através do formulário.
+#     arquivo = request.FILES.get('arquivo')
+    
+#     # Divide o nome do arquivo para obter a extensão.
+#     extensao = arquivo.name.split('.')
+
+#     if empresa.user != request.user:
+#         # Não permite acessar a empresa.
+#         messages.add_message(request, constants.ERROR, "Permissão Negada! Você não está na sua empresa!")
+#         # Redireciona de volta para a página de listar empresa.
+#         return redirect('/empresarios/listar_empresas')
+
+#     # Verifica se a extensão do arquivo é PDF.
+#     if extensao[1] != 'pdf':
+#         # Adiciona uma mensagem de erro se o arquivo não for PDF.
+#         messages.add_message(request, constants.ERROR, "Envie apenas PDF's")
+#         # Redireciona de volta para a página da empresa.
+#         return redirect(f'/empresarios/empresa/{empresa.id}')
+    
+#     # Verifica se o arquivo não foi enviado.
+#     if not arquivo:
+#         # Adiciona uma mensagem de erro se nenhum arquivo for enviado.
+#         messages.add_message(request, constants.ERROR, "Envie um arquivo")
+#         # Redireciona de volta para a página da empresa.
+#         return redirect(f'/empresarios/empresa/{empresa.id}')
+    
+#     # Verifique se o arquivo é um PDF
+#     if not arquivo.name.endswith('.pdf'):
+#         messages.add_message(request, constants.ERROR, "Envie apenas PDF's")
+#         return redirect(f'/empresarios/empresa/{empresa.id}')
+        
+#     # Cria uma nova instância de Documento associada à empresa com o título e arquivo fornecidos.
+#     documento = Documento(
+#         empresa=empresa,
+#         titulo=titulo,
+#         arquivo=arquivo
+#     )
+#     # Salva o novo documento no banco de dados.
+#     documento.save()
+#     # Adiciona uma mensagem de sucesso indicando que o arquivo foi cadastrado com sucesso.
+#     messages.add_message(request, constants.SUCCESS, "Arquivo cadastrado com sucesso")
+#     # Redireciona de volta para a página da empresa.
+#     return redirect(f'/empresarios/empresa/{empresa.id}')
+
 
 # Adicionar um novo documento para uma empresa
 def add_doc(request, id):
@@ -235,15 +302,6 @@ def add_doc(request, id):
     um arquivo PDF e o título deve ser fornecido. Se o arquivo não for PDF ou
     estiver ausente, uma mensagem de erro será exibida. Caso contrário, o
     documento será salvo e uma mensagem de sucesso será exibida.
-
-    Parâmetros:
-    request: Objeto HttpRequest que contém os dados da solicitação, incluindo
-             o arquivo e o título do documento.
-    id: ID da empresa à qual o documento será associado.
-
-    Retorna:
-    HttpResponseRedirect: Redireciona para a página da empresa com uma mensagem
-                          apropriada.
     """
     # Recupera a empresa com o ID fornecido. Levanta uma exceção se não encontrada.
     empresa = Empresas.objects.get(id=id)
@@ -253,27 +311,27 @@ def add_doc(request, id):
     
     # Obtém o arquivo enviado através do formulário.
     arquivo = request.FILES.get('arquivo')
-    
-    # Divide o nome do arquivo para obter a extensão.
-    extensao = arquivo.name.split('.')
 
     if empresa.user != request.user:
         # Não permite acessar a empresa.
         messages.add_message(request, constants.ERROR, "Permissão Negada! Você não está na sua empresa!")
-        # Redireciona de volta para a página de listar empresa.
-        return redirect(f'/empresarios/listar_empresas')
+        # Redireciona de volta para a página de listar empresas.
+        return redirect('/empresarios/listar_empresas')
 
-    # Verifica se a extensão do arquivo é PDF.
-    if extensao[1] != 'pdf':
-        # Adiciona uma mensagem de erro se o arquivo não for PDF.
-        messages.add_message(request, constants.ERROR, "Envie apenas PDF's")
-        # Redireciona de volta para a página da empresa.
-        return redirect(f'/empresarios/empresa/{empresa.id}')
-    
-    # Verifica se o arquivo não foi enviado.
+    # Verifica se o arquivo foi enviado.
     if not arquivo:
         # Adiciona uma mensagem de erro se nenhum arquivo for enviado.
         messages.add_message(request, constants.ERROR, "Envie um arquivo")
+        # Redireciona de volta para a página da empresa.
+        return redirect(f'/empresarios/empresa/{empresa.id}')
+    
+    # Divide o nome do arquivo para obter a extensão.
+    extensao = arquivo.name.split('.')
+    
+    # Verifica se a extensão do arquivo é PDF.
+    if extensao[-1].lower() != 'pdf':
+        # Adiciona uma mensagem de erro se o arquivo não for PDF.
+        messages.add_message(request, constants.ERROR, "Envie apenas PDF's")
         # Redireciona de volta para a página da empresa.
         return redirect(f'/empresarios/empresa/{empresa.id}')
         
@@ -289,4 +347,24 @@ def add_doc(request, id):
     messages.add_message(request, constants.SUCCESS, "Arquivo cadastrado com sucesso")
     # Redireciona de volta para a página da empresa.
     return redirect(f'/empresarios/empresa/{empresa.id}')
+
+
+# Excluir um documento de uma empresa
+def excluir_dc(request, id):
+    try:
+        documento = Documento.objects.get(id=id)
+    except Documento.DoesNotExist:
+        messages.add_message(request, constants.ERROR, "Documento não encontrado.")
+        return redirect('/empresarios/listar_empresas')
+
+    if documento.empresa.user != request.user:
+        messages.add_message(request, constants.ERROR, "Permissão Negada! Você não tem permissão para excluir este documento!")
+        return redirect('/empresarios/listar_empresas')
+
+    documento.delete()
+
+    messages.add_message(request, constants.SUCCESS, "Documento excluído com sucesso")
+    return redirect(f'/empresarios/empresa/{documento.empresa.id}')
+
+
 
