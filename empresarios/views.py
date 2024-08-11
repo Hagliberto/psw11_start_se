@@ -54,7 +54,34 @@ def cadastrar_empresa(request):
             messages.add_message(request, constants.ERROR, 'O percentual de equity deve ser numérico.')
             return redirect('/empresarios/cadastrar_empresa')
 
-        # Tentativa de criação da nova empresa
+        # Verificação da existência de escolhas válidas para 'tempo_existencia', 'estagio' e 'area'
+        if tempo_existencia not in dict(Empresas.tempo_existencia_choices).keys():
+            messages.add_message(request, constants.ERROR, 'Escolha um tempo de existência válido.')
+            return redirect('/empresarios/cadastrar_empresa')
+
+        if estagio not in dict(Empresas.estagio_choices).keys():
+            messages.add_message(request, constants.ERROR, 'Escolha um estágio válido.')
+            return redirect('/empresarios/cadastrar_empresa')
+
+        if area not in dict(Empresas.area_choices).keys():
+            messages.add_message(request, constants.ERROR, 'Escolha uma área válida.')
+            return redirect('/empresarios/cadastrar_empresa')
+
+        # Validação do arquivo 'pitch'
+        if pitch:
+            # Limite de tamanho de arquivo: 100MB
+            if pitch.size > 100 * 1024 * 1024:
+                messages.add_message(request, constants.ERROR, 'O arquivo pitch deve ter no máximo 100MB.')
+                return redirect('/empresarios/cadastrar_empresa')
+
+        # Validação do arquivo 'logo'
+        if logo:
+            # Verifica se o formato do arquivo é permitido (jpeg, png, jpg)
+            if not logo.name.lower().endswith(('.jpeg', '.png', '.jpg')):
+                messages.add_message(request, constants.ERROR, 'A logo deve estar nos formatos jpeg, png ou jpg.')
+                return redirect('/empresarios/cadastrar_empresa')
+
+        # Criação da empresa
         try:
             empresa = Empresas(
                 user=request.user,  # Atribui o usuário logado como o criador da empresa
