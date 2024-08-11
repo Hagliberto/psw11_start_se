@@ -19,4 +19,10 @@ urlpatterns = [
     
     # Rota para excluir um documento de um empresa específica pelo ID
     path('excluir_dc/<int:id>', views.excluir_dc, name="excluir_dc"),
+
+    # Rota para métricas
+    path('add_metrica/<int:id>', views.add_metrica, name="add_metrica"),
+
+
+
 ]

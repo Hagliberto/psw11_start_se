@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.messages import constants
-from .models import Empresas, Documento
+from .models import Empresas, Documento, Metricas
 from .validators import validar_cnpj
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
@@ -368,3 +368,17 @@ def excluir_dc(request, id):
 
 
 
+def add_metrica(request, id):
+    empresa = Empresas.objects.get(id=id)
+    titulo = request.POST.get('titulo')
+    valor = request.POST.get('valor')
+    
+    metrica = Metricas(
+        empresa=empresa,
+        titulo=titulo,
+        valor=valor
+    )
+    metrica.save()
+
+    messages.add_message(request, constants.SUCCESS, "Métrica cadastrada com sucesso")
+    return redirect(f'/empresarios/empresa/{empresa.id}')
