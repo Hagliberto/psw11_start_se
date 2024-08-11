@@ -75,6 +75,7 @@
         <table class="table">
             <thead>
                 <tr class="cabecalho" style="background-color: transparent !important;">
+                    <th class="cabecalho" scope="col">Logo</th>
                     <th class="cabecalho" scope="col">Nome</th>
                     <th class="cabecalho" scope="col">Percentual captado</th>
                     <th class="cabecalho" scope="col">Status</th>
@@ -84,6 +85,9 @@
             <tbody>
                 {% for empresa in empresas %}
                     <tr class="linha">
+                        <td class="linha">
+                            <img src="{{ empresa.logo.url }}" class="foto-empresa" alt="Logo da empresa">
+                        </td>
                         <td class="linha">{{ empresa.nome }}</td>
                         <td class="linha">
                             <div class="progress">
@@ -91,11 +95,11 @@
                             </div>
                         </td>
                         <td class="linha">{{ empresa.status }}</td>
-                        <td class="linha"><a href="{% url 'detalhar_empresa' empresa.id %}" class="btn btn-indigo-normal">Abrir</a></td>
+                        <td class="linha"><a href="/empresarios/empresa/{{empresa.id}}" class="btn btn-indigo-normal">Abrir</a></td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center">Nenhuma empresa encontrada.</td>
+                        <td colspan="5" class="text-center">Nenhuma empresa encontrada.</td>
                     </tr>
                 {% endfor %}
             </tbody>

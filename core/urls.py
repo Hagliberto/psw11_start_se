@@ -17,6 +17,9 @@ Incluindo outra configuração de URL (URLconf)
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 # Lista de padrões de URL que mapeia as URLs para as views correspondentes
 urlpatterns = [
@@ -25,4 +28,5 @@ urlpatterns = [
     path('usuarios/', include('usuarios.urls')),
     path('empresarios/', include('empresarios.urls')),
      
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

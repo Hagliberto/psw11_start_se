@@ -4,6 +4,7 @@ from django.contrib.messages import constants
 from .models import Empresas
 from .validators import validar_cnpj
 from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse
 
 # Cadastrar uma nova empresa
 def cadastrar_empresa(request):
@@ -182,3 +183,9 @@ def listar_empresas(request):
 def detalhar_empresa(request, id):
     empresa = get_object_or_404(Empresas, id=id)
     return render(request, 'detalhar_empresa.html', {'empresa': empresa})
+
+
+def empresa(request, id):
+    empresa = Empresas.objects.get(id=id)
+    if request.method == "GET":
+        return render(request, 'empresa.html', {'empresa': empresa})
